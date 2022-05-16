@@ -39,7 +39,7 @@ class Radiator():
             if self.radiator_state >= 1:
                 self.radiator_state = 1
         else:
-            self.radiator_state += (-1/5) * 0.0416667
+            self.radiator_state += (-3/5) * 0.0416667 # -3 is an assumption
             if self.radiator_state <= 0:
                 self.radiator_state = 0
 

@@ -1,4 +1,3 @@
-from os import times
 from gym import Env
 from gym.spaces import Discrete, Box
 import numpy as np
@@ -12,9 +11,23 @@ import random
 '''
 
 
-class RoomEnv(Env):
+
+
+
+class Radiator():
     '''
-        This class represents the environment in which the agent will later train.
+        This class represents everything related to the radiator. Initially, the
+        radiator has a hight and lenth.
+    '''
+
+    def __init__(self, length=1, hight=0.5):
+        self.length = length # in meter [2]
+        self.hight = hight # in meter [2]
+
+
+class RoomEnv():
+    '''
+        This class represents the environment in which the agent will train.
         It is built up on the YouTube tutorial Building a Custom Environment for 
         Deep Reinforcement Learning with OpenAI Gym and Python by Nicholas Renotte [3].
     '''
@@ -42,8 +55,7 @@ class RoomEnv(Env):
         self.heat_of_air = 1.005 # kJ/kgC° [1]
         self.air_density = 1.25 # kg/m^3 [1]
         self.delta_t = 1 # in seconds [1]
-        self.radiator_length = 1 # in meter [2]
-        self.radiator_hight = 0.5 # in meter [2]
+
 
     @staticmethod
     def roc_heat_in_walls(heat_trans_coef, x_dim, y_dim, z_dim, ambient_temp, zone_temp):
@@ -73,9 +85,10 @@ class RoomEnv(Env):
     def step(self, action):
         ''' Given an action, this method performs the change in the environment and returns state, reward, done and info. '''
         Hwzt = self.roc_heat_in_walls(self.heat_trans_coef, self.x_dim, self.y_dim, self.z_dim, 0, 20)
-        Hhzt = self.roc_heat_in_zone(action, self.radiator_length, self.radiator_hight)
+        Hhzt = self.roc_heat_in_zone(action, radiator.length, radiator.hight)
         delta_temp = self.zone_temp(self.delta_t, Hwzt, Hhzt, self.room_volume, self.air_density, self.heat_of_air)
-        #print(delta_temp)
+        self.state += delta_temp
+        return self.state
 
     def render(self):
         pass
@@ -85,8 +98,7 @@ class RoomEnv(Env):
         self.state = ((self.temp_low + self.temp_up) / 2) + random.randint(-3,3)
         self.sim_duration = 100 # TODO: Placeholder - must be defined later
 
-#TODO: Include time steps.
-
+radiator = Radiator()
 env = RoomEnv()
 
 episode = 1
@@ -100,10 +112,11 @@ for episode in range(1,episode+1):
         if time_step % 60 == 0:
             action = env.action_space.sample()
             print(action)
+            print(env.step(action))
             #n_state, reward, done, info = env.step(action)
         else:
             print("prev. action: ", action)
-            #print(env.step(action))
+            print(env.step(action))
             #n_state, reward, done, info = env.step(action)
         #score+=reward
         time_step += 1

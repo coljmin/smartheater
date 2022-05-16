@@ -9,6 +9,7 @@ import random
 [2]: Engineering ToolBox, (2008). Radiators - Heat Emission. [online] Available at: https://www.engineeringtoolbox.com/heat-emission-radiators-d_1121.html [Accessed 14 May 2022].
 [3]: https://www.youtube.com/watch?v=bD6V3rcr_54
 [4]: https://www.scplumbing.co.uk/helpful-info/how-quickly-should-radiators-heat-up
+[5]: https://www.castrads.com/uk/resources/calculators/panel-radiator-outputs/
 '''
 
 
@@ -29,20 +30,18 @@ class Radiator():
         self.radiator_hight = hight # in meter [2]
         self.radiator_state = 0 # Continuous, between 0 and 1
 
-    def get_state(self, action):
+    def update_state(self, action):
         ''' Method that returns the current state of the radiator. The return value is 
             continuous between 0 and 1. This means that with the value 1 the radiator 
             reached its maximum power. '''
         if action != 0:
+            self.radiator_state += action/5 * 0.0416667 # 0.0416667 is the gain per second at the highest level (5)
             if self.radiator_state >= 1:
-                return 0
-            else:
-                return (action/5) * 0.0416667 # 0.0416667 is the gain per second at the highest level (5)
+                self.radiator_state = 1
         else:
+            self.radiator_state += (-1/5) * 0.0416667
             if self.radiator_state <= 0:
-                return 0
-            else:
-                return (-1/5) * 0.0416667
+                self.radiator_state = 0
 
 
 
@@ -95,7 +94,7 @@ class RoomEnv(Radiator):
         ''' This method calculates the rate of heat change in the zone. The value gets multiplied 
             by the ctrl_value. This variable is defined by the choosen action divided by 5, which 
             is the maximum value on a common thermostatic valve [2]. '''
-        Hhzt = radiator_state * (41 * 4.9 * radiator_lenght * (1 + 8 * radiator_hight))
+        Hhzt = radiator_state * (41 * 3.1 * radiator_lenght * (1 + 8 * radiator_hight))
         return Hhzt
 
     @staticmethod
@@ -106,7 +105,7 @@ class RoomEnv(Radiator):
 
     def step(self, action):
         ''' Given an action, this method performs the change in the environment and returns state, reward, done and info. '''
-        self.radiator_state += self.get_state(action)
+        self.update_state(action)
         Hwzt = self.roc_heat_in_walls(self.heat_trans_coef, self.x_dim, self.y_dim, self.z_dim, 0, 20)
         Hhzt = self.roc_heat_in_zone(self.radiator_length, self.radiator_hight, self.radiator_state)
         delta_temp = self.zone_temp(self.delta_t, Hwzt, Hhzt, self.room_volume, self.air_density, self.heat_of_air)

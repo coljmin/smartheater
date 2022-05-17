@@ -12,11 +12,18 @@ import random
 [5]: https://www.castrads.com/uk/resources/calculators/panel-radiator-outputs/
 '''
 
+class HeatObject():
+    def take():
+        pass
+    def give():
+        pass
+    def energyniveau():
+        # give = +  take = -
+        pass
 
 
 
-
-class Radiator():
+class Radiator(HeatObject):
     '''
         This class represents everything related to the radiator. Initially, the
         radiator has a hight and lenth. It is assumed, that this is a typical radiator 
@@ -24,6 +31,10 @@ class Radiator():
         keep it simple, the radiator shows a linear behaviour in heating up and 
         cooling down. 
     '''
+
+    def give():
+        # radiates heat
+        pass
 
     def __init__(self, length=1, hight=0.5):
         self.radiator_length = length # in meter [2]
@@ -45,7 +56,7 @@ class Radiator():
 
 
 
-class RoomEnv(Radiator):
+class RoomEnv(HeatObject):
     '''
         This class represents the environment in which the agent will train.
         It is built up on the YouTube tutorial Building a Custom Environment for 
@@ -77,6 +88,10 @@ class RoomEnv(Radiator):
         self.air_density = 1.25 # kg/m^3 [1]
         self.delta_t = 1 # in seconds [1]
 
+
+    def take():
+        # receives heat
+        pass
 
     @staticmethod
     def roc_heat_in_walls(heat_trans_coef, x_dim, y_dim, z_dim, ambient_temp, zone_temp):
@@ -121,6 +136,7 @@ class RoomEnv(Radiator):
         self.sim_duration = 100 # TODO: Placeholder - must be defined later
 
 env = RoomEnv()
+rad = Radiator()
 
 episode = 1
 for episode in range(1,episode+1):
@@ -133,14 +149,18 @@ for episode in range(1,episode+1):
     while not done:
         if time_step % 60 == 0:
             action = env.action_space.sample()
+            rad.setCurrentAction(action)
             print("action: ", action, "state: ", env.step(action), "rad_stae: ", env.radiator_state)
             #n_state, reward, done, info = env.step(action)
         else:
             print("action: ", action, "state: ", env.step(action), "rad_stae: ", env.radiator_state)
             #n_state, reward, done, info = env.step(action)
+        env.influences(rad)
         #score+=reward
         time_step += 1
-
+        env.step()
+        rad.update()
+        #window.update()
 
         # For debugging
         if time_step == 1000:

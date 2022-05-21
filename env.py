@@ -94,9 +94,9 @@ class RoomEnv():
 
 
     @staticmethod
-    def cal_delta_temp(delta_t, Hwzt, Hhzt, room_volume, air_density, heat_of_air):
+    def cal_delta_temp(delta_t, room_take, rad_give, room_volume, air_density, heat_of_air):
         ''' This method calculates the temperature difference between t and t+1 in the zone [1]. '''
-        delta_temp = delta_t * (Hwzt + Hhzt) / room_volume * air_density * heat_of_air
+        delta_temp = delta_t * (room_take + rad_give) / room_volume * air_density * heat_of_air
         return delta_temp
 
     def step(self):

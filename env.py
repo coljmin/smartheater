@@ -81,11 +81,6 @@ class RoomEnv():
         self.air_density = 1.25 # kg/m^3 [1]
         self.delta_t = 1 # in seconds [1]
 
-
-    def take():
-        # receives heat
-        pass
-
     @staticmethod
     def take(heat_trans_coef, x_dim, y_dim, z_dim, ambient_temp, zone_temp):
         ''' This method calculates the rate of heat change in the walls. It is assumed, 

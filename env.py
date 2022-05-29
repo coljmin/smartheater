@@ -125,9 +125,7 @@ class RoomEnv():
         ''' Given an action, this method performs the change in the environment and returns state, reward, done and info. '''
         day.update_temp()
         day.update_timestamp()
-        print(day.timestamp)
-        print(day.temp)
-        room_take = self.take(self.heat_trans_coef, self.x_dim, self.y_dim, self.z_dim, 0, 20)
+        room_take = self.take(self.heat_trans_coef, self.x_dim, self.y_dim, self.z_dim, day.temp, self.state)
         rad_give = raditator.give(raditator.radiator_length, raditator.radiator_hight)
         delta_temp = self.cal_delta_temp(self.delta_t, room_take, rad_give, self.room_volume, self.air_density, self.heat_of_air)
         self.state += delta_temp
@@ -168,14 +166,14 @@ for episode in range(1,episode+1):
             action = room.action_space.sample()
             raditator.set_state(action)
             room.step()
-            #print("action: ", action, "state: ", room.step(), "rad_statee: ", raditator.state)
+            print("action: ", action, "state: ", room.step(), "rad_state: ", raditator.state, "amb_temp: ", day.temp)
             #n_state, reward, done, info = env.step(action)
         else:
             raditator.set_state(action)
             room.step()
-            #print("action: ", action, "state: ", room.step(), "rad_state: ", raditator.state)
+            print("action: ", action, "state: ", room.step(), "rad_state: ", raditator.state, "amb_temp: ", day.temp)
             #n_state, reward, done, info = env.step(action)
         #score+=reward
 
-        if day.timestamp >= 1578523500:
+        if day.timestamp >= 1578474000:
             done = True

@@ -130,7 +130,7 @@ class RoomEnv():
         elif exp_temp > ideal_temp - 1 and exp_temp < ideal_temp + 1:
             return 1
         else:
-            return 0
+            return 0.5
 
     @staticmethod
     def check_for_done(timestamp):
@@ -143,16 +143,20 @@ class RoomEnv():
     def step(self):
         ''' Given an action, this method performs the change in the environment and returns state, reward, done and info. '''
         day.update_temp()
-        day.update_timestamp()
         room_take = self.take(self.heat_trans_coef, self.x_dim, self.y_dim, self.z_dim, day.temp, self.state)
         rad_give = radiator.give(radiator.radiator_length, radiator.radiator_hight)
         delta_temp = self.cal_delta_temp(self.delta_t, room_take, rad_give, self.room_volume, self.air_density, self.heat_of_air)
         self.state += delta_temp
-        exp_temp_change = self.cal_delta_temp(3600, room_take, rad_give, self.room_volume, self.air_density, self.heat_of_air)
-        exp_temp = self.state + exp_temp_change
-        reward = self.cal_reward(exp_temp, self.temp_low, self.temp_up)
+        if day.timestamp % 300 == 0:
+            exp_temp_change = self.cal_delta_temp(300, room_take, rad_give, self.room_volume, self.air_density, self.heat_of_air)
+            exp_temp = self.state + exp_temp_change
+            print('exp_temp1: ', exp_temp)
+            reward = self.cal_reward(exp_temp, self.temp_low, self.temp_up)
+        else:
+            reward = 0
         done = self.check_for_done(day.timestamp)
         info = []
+        day.update_timestamp()
         return self.state, reward, done, info
 
     def render(self):
@@ -180,28 +184,27 @@ day = Day(timestamp=timestamp, weather=weather)
 
 episode = 1
 for episode in range(1,episode+1):
-    state = room.reset()
+    room.reset()
     done = False
     score = 0
-    print(state)
+    print(room.state)
 
     while not done:
-        if day.timestamp % 900 == 0:
-            action = room.action_space.sample()
+        if day.timestamp % 300 == 0:
+            #action = room.action_space.sample()
+            action = 1
             radiator.set_state(action)
-            room.step()
             #print("action: ", action, "state: ", room.step(), "rad_state: ", radiator.state, "amb_temp: ", day.temp, "done: ", done)
             n_state, reward, done, info = room.step()
             print('state: ', n_state, 'reward: ', reward, 'done: ', done, 'info: ', info)
 
         else:
             radiator.set_state(action)
-            room.step()
             #print("action: ", action, "state: ", room.step(), "rad_state: ", radiator.state, "amb_temp: ", day.temp)
             n_state, reward, done, info = room.step()
             print('state: ', n_state, 'reward: ', reward, 'done: ', done, 'info: ', info)
         #score+=reward
 
-        time.sleep(2)
+        #time.sleep(1)
         if day.timestamp >= 1578474000:
             done = True

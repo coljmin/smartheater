@@ -121,14 +121,28 @@ class RoomEnv():
         delta_temp = delta_t * (room_take + rad_give) / room_volume * air_density * heat_of_air
         return delta_temp
 
+    @staticmethod
+    def cal_reward(exp_temp, lower_lim, upper_lim):
+        ideal_temp = (lower_lim + upper_lim) / 2
+        if exp_temp < lower_lim or exp_temp > upper_lim:
+            return -1
+        elif exp_temp > ideal_temp - 1 and exp_temp < ideal_temp + 1:
+            return 1
+        else:
+            return 0
+
+
     def step(self):
         ''' Given an action, this method performs the change in the environment and returns state, reward, done and info. '''
         day.update_temp()
         day.update_timestamp()
         room_take = self.take(self.heat_trans_coef, self.x_dim, self.y_dim, self.z_dim, day.temp, self.state)
-        rad_give = raditator.give(raditator.radiator_length, raditator.radiator_hight)
+        rad_give = radiator.give(radiator.radiator_length, radiator.radiator_hight)
         delta_temp = self.cal_delta_temp(self.delta_t, room_take, rad_give, self.room_volume, self.air_density, self.heat_of_air)
         self.state += delta_temp
+        exp_temp_change = self.cal_delta_temp(3600, room_take, rad_give, self.room_volume, self.air_density, self.heat_of_air)
+        exp_temp = self.state + exp_temp_change
+        reward = self.cal_reward(exp_temp, self.temp_low, self.temp_up)
         return self.state
 
     def render(self):
@@ -150,7 +164,7 @@ timestamp = 1578438000 # Timestamp for 2020-01-08 00:00:00. This is when the sam
 weather = load_json()
 
 room = RoomEnv()
-raditator = Radiator()
+radiator = Radiator()
 day = Day(timestamp=timestamp, weather=weather)
 
 
@@ -164,14 +178,14 @@ for episode in range(1,episode+1):
     while not done:
         if day.timestamp % 900 == 0:
             action = room.action_space.sample()
-            raditator.set_state(action)
+            radiator.set_state(action)
             room.step()
-            print("action: ", action, "state: ", room.step(), "rad_state: ", raditator.state, "amb_temp: ", day.temp)
+            print("action: ", action, "state: ", room.step(), "rad_state: ", radiator.state, "amb_temp: ", day.temp)
             #n_state, reward, done, info = env.step(action)
         else:
-            raditator.set_state(action)
+            radiator.set_state(action)
             room.step()
-            print("action: ", action, "state: ", room.step(), "rad_state: ", raditator.state, "amb_temp: ", day.temp)
+            print("action: ", action, "state: ", room.step(), "rad_state: ", radiator.state, "amb_temp: ", day.temp)
             #n_state, reward, done, info = env.step(action)
         #score+=reward
 

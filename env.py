@@ -2,6 +2,7 @@ from gym import Env
 from gym.spaces import Discrete, Box
 import numpy as np
 import random
+import json
 
 
 '''
@@ -10,7 +11,21 @@ import random
 [3]: https://www.youtube.com/watch?v=bD6V3rcr_54
 [4]: https://www.scplumbing.co.uk/helpful-info/how-quickly-should-radiators-heat-up
 [5]: https://www.castrads.com/uk/resources/calculators/panel-radiator-outputs/
+[6]: https://www.proplanta.de/Agrarwetter-Schweiz/Bern_Rueckblick_08-01-2020_AgrarWetter_Schweiz.htmls
 '''
+
+
+class Day():
+    def __init__(self, timestamp, weather):
+        self.weather = weather
+        self.timestamp = timestamp
+        self.temp = 0
+
+    def update_timestamp(self):
+        pass
+
+    def update_temp(self):
+        pass
 
 
 
@@ -115,8 +130,20 @@ class RoomEnv():
         self.state = ((self.temp_low + self.temp_up) / 2) + random.randint(-3,3)
         self.sim_duration = 100 # TODO: Placeholder - must be defined later
 
+
+def load_json():
+    with open('winter_day.json', 'r') as openfile:
+        day = json.load(openfile)
+    return day
+
+
+timestamp = 1578438000 # Timestamp for 2020-01-08 00:00:00. This is when the sampel day starts
+weather = load_json()
+
 room = RoomEnv()
 raditator = Radiator()
+day = Day(timestamp=timestamp, weather=weather)
+
 
 episode = 1
 for episode in range(1,episode+1):
@@ -130,18 +157,16 @@ for episode in range(1,episode+1):
         if time_step % 60 == 0:
             action = room.action_space.sample()
             raditator.set_state(action)
-            print("action: ", action, "state: ", room.step(), "rad_statee: ", raditator.state)
+            #print("action: ", action, "state: ", room.step(), "rad_statee: ", raditator.state)
             #n_state, reward, done, info = env.step(action)
         else:
             raditator.set_state(action)
-            print("action: ", action, "state: ", room.step(), "rad_state: ", raditator.state)
+            #print("action: ", action, "state: ", room.step(), "rad_state: ", raditator.state)
             #n_state, reward, done, info = env.step(action)
         #room.influences(raditator)
         #score+=reward
         time_step += 1
-        #room.step()
-        #raditator.update()
-        #window.update()
+
 
         # For debugging
         if time_step == 1000:

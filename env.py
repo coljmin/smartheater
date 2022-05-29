@@ -21,11 +21,16 @@ class Day():
         self.timestamp = timestamp
         self.temp = 0
 
-    def update_timestamp(self):
-        pass
-
     def update_temp(self):
-        pass
+        for i in range(96):
+            if self.weather['2020-01-08'][str(i)]['timestep'] == self.timestamp:
+                self.temp = self.weather['2020-01-08'][str(i)]['temp']
+            elif self.weather['2020-01-08'][str(i)]['timestep'] > self.timestamp:
+                self.temp = self.weather['2020-01-08'][str(i-1)]['temp']
+
+    def update_timestamp(self):
+        self.timestamp += 1
+
 
 
 
@@ -116,6 +121,8 @@ class RoomEnv():
 
     def step(self):
         ''' Given an action, this method performs the change in the environment and returns state, reward, done and info. '''
+        day.update_temp
+        day.update_timestamp
         room_take = self.take(self.heat_trans_coef, self.x_dim, self.y_dim, self.z_dim, 0, 20)
         rad_give = raditator.give(raditator.radiator_length, raditator.radiator_hight)
         delta_temp = self.cal_delta_temp(self.delta_t, room_take, rad_give, self.room_volume, self.air_density, self.heat_of_air)

@@ -2,6 +2,7 @@ from gym import Env
 from gym.spaces import Discrete, Box
 import numpy as np
 import random
+import json
 
 
 '''
@@ -10,7 +11,28 @@ import random
 [3]: https://www.youtube.com/watch?v=bD6V3rcr_54
 [4]: https://www.scplumbing.co.uk/helpful-info/how-quickly-should-radiators-heat-up
 [5]: https://www.castrads.com/uk/resources/calculators/panel-radiator-outputs/
+[6]: https://www.proplanta.de/Agrarwetter-Schweiz/Bern_Rueckblick_08-01-2020_AgrarWetter_Schweiz.htmls
 '''
+
+
+class Day():
+    def __init__(self, timestamp, weather):
+        self.weather = weather
+        self.timestamp = timestamp
+        self.temp = 0
+
+    def update_temp(self):
+        for i in range(96):
+            if self.weather['2020-01-08'][str(i)]['timestamp'] == self.timestamp:
+                self.temp = self.weather['2020-01-08'][str(i)]['temperature']
+                break
+            elif self.weather['2020-01-08'][str(i)]['timestamp'] > self.timestamp:
+                self.temp = self.weather['2020-01-08'][str(i-1)]['temperature']
+                break
+
+    def update_timestamp(self):
+        self.timestamp += 1
+
 
 
 
@@ -101,7 +123,9 @@ class RoomEnv():
 
     def step(self):
         ''' Given an action, this method performs the change in the environment and returns state, reward, done and info. '''
-        room_take = self.take(self.heat_trans_coef, self.x_dim, self.y_dim, self.z_dim, 0, 20)
+        day.update_temp()
+        day.update_timestamp()
+        room_take = self.take(self.heat_trans_coef, self.x_dim, self.y_dim, self.z_dim, day.temp, self.state)
         rad_give = raditator.give(raditator.radiator_length, raditator.radiator_hight)
         delta_temp = self.cal_delta_temp(self.delta_t, room_take, rad_give, self.room_volume, self.air_density, self.heat_of_air)
         self.state += delta_temp
@@ -115,34 +139,41 @@ class RoomEnv():
         self.state = ((self.temp_low + self.temp_up) / 2) + random.randint(-3,3)
         self.sim_duration = 100 # TODO: Placeholder - must be defined later
 
+
+def load_json():
+    with open('winter_day.json', 'r') as openfile:
+        day = json.load(openfile)
+    return day
+
+
+timestamp = 1578438000 # Timestamp for 2020-01-08 00:00:00. This is when the sampel day starts
+weather = load_json()
+
 room = RoomEnv()
 raditator = Radiator()
+day = Day(timestamp=timestamp, weather=weather)
+
 
 episode = 1
 for episode in range(1,episode+1):
     state = room.reset()
     done = False
     score = 0
-    time_step = 0
     print(state)
 
     while not done:
-        if time_step % 60 == 0:
+        if day.timestamp % 900 == 0:
             action = room.action_space.sample()
             raditator.set_state(action)
-            print("action: ", action, "state: ", room.step(), "rad_statee: ", raditator.state)
+            room.step()
+            print("action: ", action, "state: ", room.step(), "rad_state: ", raditator.state, "amb_temp: ", day.temp)
             #n_state, reward, done, info = env.step(action)
         else:
             raditator.set_state(action)
-            print("action: ", action, "state: ", room.step(), "rad_state: ", raditator.state)
+            room.step()
+            print("action: ", action, "state: ", room.step(), "rad_state: ", raditator.state, "amb_temp: ", day.temp)
             #n_state, reward, done, info = env.step(action)
-        #room.influences(raditator)
         #score+=reward
-        time_step += 1
-        #room.step()
-        #raditator.update()
-        #window.update()
 
-        # For debugging
-        if time_step == 1000:
+        if day.timestamp >= 1578474000:
             done = True

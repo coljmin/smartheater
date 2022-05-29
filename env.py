@@ -3,6 +3,7 @@ from gym.spaces import Discrete, Box
 import numpy as np
 import random
 import json
+import time
 
 
 '''
@@ -131,6 +132,13 @@ class RoomEnv():
         else:
             return 0
 
+    @staticmethod
+    def check_for_done(timestamp):
+        if timestamp < 1578523500:
+            return False
+        else:
+            return True
+
 
     def step(self):
         ''' Given an action, this method performs the change in the environment and returns state, reward, done and info. '''
@@ -143,7 +151,9 @@ class RoomEnv():
         exp_temp_change = self.cal_delta_temp(3600, room_take, rad_give, self.room_volume, self.air_density, self.heat_of_air)
         exp_temp = self.state + exp_temp_change
         reward = self.cal_reward(exp_temp, self.temp_low, self.temp_up)
-        return self.state
+        done = self.check_for_done(day.timestamp)
+        info = []
+        return self.state, reward, done, info
 
     def render(self):
         pass
@@ -189,5 +199,6 @@ for episode in range(1,episode+1):
             #n_state, reward, done, info = env.step(action)
         #score+=reward
 
+        time.sleep(2)
         if day.timestamp >= 1578474000:
             done = True

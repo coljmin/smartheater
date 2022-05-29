@@ -190,13 +190,16 @@ for episode in range(1,episode+1):
             action = room.action_space.sample()
             radiator.set_state(action)
             room.step()
-            print("action: ", action, "state: ", room.step(), "rad_state: ", radiator.state, "amb_temp: ", day.temp)
-            #n_state, reward, done, info = env.step(action)
+            #print("action: ", action, "state: ", room.step(), "rad_state: ", radiator.state, "amb_temp: ", day.temp, "done: ", done)
+            n_state, reward, done, info = room.step()
+            print('state: ', n_state, 'reward: ', reward, 'done: ', done, 'info: ', info)
+
         else:
             radiator.set_state(action)
             room.step()
-            print("action: ", action, "state: ", room.step(), "rad_state: ", radiator.state, "amb_temp: ", day.temp)
-            #n_state, reward, done, info = env.step(action)
+            #print("action: ", action, "state: ", room.step(), "rad_state: ", radiator.state, "amb_temp: ", day.temp)
+            n_state, reward, done, info = room.step()
+            print('state: ', n_state, 'reward: ', reward, 'done: ', done, 'info: ', info)
         #score+=reward
 
         time.sleep(2)

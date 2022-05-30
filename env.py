@@ -90,7 +90,6 @@ class RoomEnv():
             - z_dim: Room hight in meter
         '''
         self.action_space = Discrete(6)
-        self.observation_space = Box(low=np.array([0]), high=np.array([100]))
         self.temp_low = temp_low
         self.temp_up = temp_up
         self.state = ((self.temp_low + self.temp_up) / 2) + random.randint(-3,3)
@@ -98,7 +97,6 @@ class RoomEnv():
         self.y_dim = y_dim # in meter
         self.z_dim = z_dim # in meter
         self.room_volume = x_dim * y_dim * z_dim
-        self.sim_duration = 100 # TODO: Placeholder - must be defined later
         self.heat_trans_coef = 0.001 # in kW/m^2C° [1]
         self.heat_of_air = 1.005 # kJ/kgC° [1]
         self.air_density = 1.25 # kg/m^3 [1]
@@ -140,15 +138,16 @@ class RoomEnv():
             return True
 
 
-    def step(self):
+    def step(self, action):
         ''' Given an action, this method performs the change in the environment and returns state, reward, done and info. '''
         day.update_temp()
+        radiator.set_state(action)
         room_take = self.take(self.heat_trans_coef, self.x_dim, self.y_dim, self.z_dim, day.temp, self.state)
         rad_give = radiator.give(radiator.radiator_length, radiator.radiator_hight)
         delta_temp = self.cal_delta_temp(self.delta_t, room_take, rad_give, self.room_volume, self.air_density, self.heat_of_air)
         self.state += delta_temp
-        if day.timestamp % 300 == 0:
-            exp_temp_change = self.cal_delta_temp(300, room_take, rad_give, self.room_volume, self.air_density, self.heat_of_air)
+        if day.timestamp % 900 == 0:
+            exp_temp_change = self.cal_delta_temp(900, room_take, rad_give, self.room_volume, self.air_density, self.heat_of_air)
             exp_temp = self.state + exp_temp_change
             print('exp_temp1: ', exp_temp)
             reward = self.cal_reward(exp_temp, self.temp_low, self.temp_up)
@@ -159,13 +158,9 @@ class RoomEnv():
         day.update_timestamp()
         return self.state, reward, done, info
 
-    def render(self):
-        pass
-
     def reset(self):
         ''' Resets the environment to start a new episode. '''
         self.state = ((self.temp_low + self.temp_up) / 2) + random.randint(-3,3)
-        self.sim_duration = 100 # TODO: Placeholder - must be defined later
 
 
 def load_json():
@@ -190,18 +185,16 @@ for episode in range(1,episode+1):
     print(room.state)
 
     while not done:
-        if day.timestamp % 300 == 0:
+        if day.timestamp % 900 == 0:
             #action = room.action_space.sample()
             action = 1
-            radiator.set_state(action)
             #print("action: ", action, "state: ", room.step(), "rad_state: ", radiator.state, "amb_temp: ", day.temp, "done: ", done)
-            n_state, reward, done, info = room.step()
+            n_state, reward, done, info = room.step(action)
             print('state: ', n_state, 'reward: ', reward, 'done: ', done, 'info: ', info)
 
         else:
-            radiator.set_state(action)
             #print("action: ", action, "state: ", room.step(), "rad_state: ", radiator.state, "amb_temp: ", day.temp)
-            n_state, reward, done, info = room.step()
+            n_state, reward, done, info = room.step(action)
             print('state: ', n_state, 'reward: ', reward, 'done: ', done, 'info: ', info)
         #score+=reward
 

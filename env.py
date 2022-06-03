@@ -55,7 +55,7 @@ class Radiator():
         ''' This method calculates the rate of heat change in the zone. The value gets multiplied 
             by the ctrl_value. This variable is defined by the choosen action divided by 5, which 
             is the maximum value on a common thermostatic valve [2]. '''
-        give = self.state * (41 * 3.1 * radiator_lenght * (1 + 8 * radiator_hight))
+        give = (self.state * (41 * 4.9 * radiator_lenght * (1 + 8 * radiator_hight))) / 1000
         return give
 
     def set_state(self, action):

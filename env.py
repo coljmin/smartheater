@@ -186,8 +186,7 @@ for episode in range(1,episode+1):
 
     while not done:
         if day.timestamp % 900 == 0:
-            #action = room.action_space.sample()
-            action = 1
+            action = room.action_space.sample()
             #print("action: ", action, "state: ", room.step(), "rad_state: ", radiator.state, "amb_temp: ", day.temp, "done: ", done)
             n_state, reward, done, info = room.step(action)
             print('state: ', n_state, 'reward: ', reward, 'done: ', done, 'info: ', info)
@@ -196,7 +195,7 @@ for episode in range(1,episode+1):
             #print("action: ", action, "state: ", room.step(), "rad_state: ", radiator.state, "amb_temp: ", day.temp)
             n_state, reward, done, info = room.step(action)
             print('state: ', n_state, 'reward: ', reward, 'done: ', done, 'info: ', info)
-        #score+=reward
+        score+=reward
 
         #time.sleep(1)
         if day.timestamp >= 1578474000:
